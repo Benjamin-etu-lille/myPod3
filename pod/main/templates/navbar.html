@@ -18,6 +18,7 @@
   <a class="navbar-brand pod-navbar__brand me-0 me-sm-1" href="/" title="{{ TITLE_SITE }} - {% trans 'Home' %}" {% if request.path == '/' %}aria-current="page"{% endif %} data-bs-toggle="tooltip" data-bs-placement="bottom">
     <img src="{% static LOGO_SITE %}" height="25" alt="" loading="lazy"><strong>{{ TITLE_SITE }}</strong>
   </a>
+
   <!-- off canvas -->
   <div class="offcanvas offcanvas-start pod-offcanvas" tabindex="-1" id="pod-navbar__menu" aria-labelledby="pod-navbar__menuLabel">
     <div class="offcanvas-header">
@@ -81,12 +82,12 @@
     </div>
   </div>
 
-  <form class="pod-navbar__form my-2 my-lg-0" action='{% url "video_search:search_videos" %}' id="nav-search">
+  <form class="pod-navbar__form my-2 my-lg-0" action='{% url "video_search:search_videos" %}' id="nav-search" style="margin-right: auto;">
     <label for="s" class="d-lg-none">
       <i class="bi bi-search" aria-hidden="true"></i> <span class="visually-hidden">{% trans 'Search for a media on' %} {{ TITLE_SITE }}</span>
     </label>
     <div class="input-group me-sm-2 pod-navbar-search">
-      <input class="form-control form-control-sm hide-search-input" id="s"
+      <input class="form-control form-control-sm hide-search-input" 
              placeholder="{% trans 'Search a media' %}" type="search" name="q"
              data-bs-toggle="tooltip"
              title="{% blocktrans %}Type keyword here to search a media on {{ TITLE_SITE }}{% endblocktrans %}">
@@ -135,7 +136,7 @@
         {% endif %}
     {% endif %}
     <!--  Add configuration panel buttons -->
-    <li class="nav-item pod-params pod-navbar__nav-item" id="pod-param-buttons">
+    <li class="nav-item pod-params pod-navbar__nav-item" id="pod-param-buttons" style="padding-right: 0.5em;padding-left: 0.5em;" >
       <button class="btn btn-link pod-params-button px-1"
         type="button" id="pod-param-buttons__button"
         data-bs-toggle="offcanvas" data-bs-target="#pod-navbar__menusettings"
