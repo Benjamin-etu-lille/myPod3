@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block page_extra_head %}
+  <style>
+  /* OpenCast v1.x colors */
+  :root {
+    --theme-ui-colors-background: var(--pod-background);
+    --theme-ui-colors-text: var(--pod-font-color);
+    --theme-ui-colors-gray-0: var(--pod-font-color);
+    --theme-ui-colors-gray-4: var(--pod-background-neutre2-bloc);
+    --theme-ui-colors-button_bg: var(--pod-font-color);
+    --theme-ui-colors-btn-hover: var(--bs-btn-hover-bg);
+    --theme-ui-colors-element_bg: var(--pod-background);
+  }
+
+  /* OpenCast v2.x colors */
+  .pod-opencast-studio{
+    /*--color-accent5: var(--pod-btn-text);*/
+    --color-accent6: var(--pod-primary);
+    --color-accent7: var(--pod-link-color);
+    --color-accent8: var(--pod-activelink-color);
+  }
+  html[data-color-scheme="dark"] .pod-opencast-studio{
+    --color-accent6: var(--pod-primary-lighten);
+    --color-accent8: var(--pod-primary-lighten);
+  }
+
+
+  .pod-opencast-studio .loading-indicator>svg>circle {
+    stroke: var(--pod-font-color);
+  }
+
+  .pod-opencast-studio {
+    --theme-ui-colors-primary: var(--pod-primary);
+    --theme-ui-colors-btn-hover: var(--pod-primary-focus);
+    --theme-ui-colors-error: var(--bs-danger);
+  }
+
+  .pod-opencast-studio div>a[role="button"]:hover {
+    color: var(--pod-btn-text);
+  }
+
+  .pod-opencast-studio .buttons button {
+    transition: filter 1s;
+  }
+
+  .pod-opencast-studio .buttons button:hover {
+    filter: drop-shadow(0 0 2px var(--pod-btn-text))
+  }
+
+  [data-theme="dark"] {
+    /*
+    --theme-ui-colors-gray-0: var(--pod-font-color);
+    --theme-ui-colors-gray-4: #737373;
+    */
+
+    /* secondary-button:hover */
+    --theme-ui-colors-gray-3: #797676;
+    --theme-ui-colors-error: rgb(241 70 104);
+    --theme-ui-colors-element_bg: var(--pod-neutre1-bloc);
+  }
+
+  #root header {
+    display: none;
+  }
+
+  /* Studio height */
+  #root>div {
+    min-height: 600px;
+  }
+
+  #root code {
+    color: var(--pod-font-color);
+  }
+
+  button>.fa-layers {
+    color: var(--pod-font-color);
+  }
+  </style>
+
+  <script>
+    // put local storage default value for default presenter
+    {% if default_presenter %}
+      localStorage.setItem('ocStudioLastPresenter', "{{default_presenter}}");
+    {% endif %}
+    // put local storage default value for language
+    localStorage.setItem('i18nextLng', "{{LANGUAGE_CODE|lower}}");
+  </script>
+{% endblock page_extra_head %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Studio" %}</li>
+{% endblock %}
+
+{% block page_title %}{% trans "Studio" %}{% endblock %}
+
+{% block page_content %}
+  <div class="pod-opencast-studio">{{body|safe}}</div>
+{% endblock page_content %}
+
+{% block collapse_page_aside %}{% endblock collapse_page_aside %}
+
+{% block page_aside %}{% endblock page_aside %}
+
+{% block more_script %}
+<script>
+  // Create array of options to be added
+  {% if default_presenter and default_presenter == "pipb" %}
+    const list_value = [
+      ["pipb", "Pip - {% trans 'Camera inside the screen video to bottom right' %}"],
+      ["piph", "Pip - {% trans 'Camera inside the screen video to top right' %}"],
+      ["mid", "50/50 - {% trans 'Same size for screen and camera' %}"]
+    ];
+  {% elif default_presenter and default_presenter == "piph" %}
+    const list_value = [
+      ["piph", "Pip - {% trans 'Camera inside the screen video to top right' %}"],
+      ["pipb", "Pip - {% trans 'Camera inside the screen video to bottom right' %}"],
+      ["mid", "50/50 - {% trans 'Same size for screen and camera' %}"]
+    ];
+  {% else %}
+    const list_value = [
+      ["mid", "50/50 - {% trans 'Same size for screen and camera' %}"],
+      ["piph", "Pip - {% trans 'Camera inside the screen video to top right' %}"],
+      ["pipb", "Pip - {% trans 'Camera inside the screen video to bottom right' %}"]
+    ];
+  {% endif %}
+
+  // Create a render type select box
+  let renderTypeSelector = document.createElement("select");
+  renderTypeSelector.id = "render_type";
+  renderTypeSelector.name = "presenter_list";
+  renderTypeSelector.classList.add("form-select");
+
+  // Create and append the render type options
+  for (let i = 0; i < list_value.length; i++) {
+    let option = document.createElement("option");
+    option.value = list_value[i][0];
+    option.text = list_value[i][1];
+    renderTypeSelector.appendChild(option);
+  }
+  let renderTypeLabel = document.createElement("label");
+  renderTypeLabel.textContent = "{% trans 'Please select the render you want' %}";
+  renderTypeLabel.setAttribute("for", "render_type");
+  renderTypeLabel.classList.add("form-label");
+
+  let renderTypeDiv = document.createElement("div");
+  renderTypeDiv.appendChild(renderTypeLabel)
+  renderTypeDiv.appendChild(renderTypeSelector)
+
+  let data_send = false;
+
+  (function() {
+    body_element = document.querySelector("body");
+    body_element.addEventListener('DOMSubtreeModified', function () {
+      let inputTitle = document.querySelector("input[name='title'][type='text']");
+      let renderTypeInput = document.getElementById("render_type");
+      // If we are at last step and renderTypeInput has not been injected yet.
+      if (inputTitle && !renderTypeInput) {
+        // If we have 2 video sources
+        if (document.querySelectorAll("#root video").length == 2) {
+          let parent_div = inputTitle.parentNode.parentNode;
+          renderTypeDiv.classList.add(parent_div.className);
+          renderTypeLabel.classList.add(parent_div.firstChild.className);
+          parent_div.parentNode.insertBefore(renderTypeDiv, parent_div.nextSibling);
+          renderTypeInput = document.getElementById("render_type");
+          renderTypeInput.addEventListener("change", (event) => {
+            // call ajax to send value
+            send_presenter_value(event.target.value);
+          });
+          send_presenter_value(renderTypeInput.value);
+        }
+      }
+    }, false);
+  })();
+
+  /**
+   * [send_presenter_value description]
+   * @param  {[type]} val [description]
+   */
+  function send_presenter_value(val) {
+    // console.log("[send_presenter_value] VAL: " + val);
+    $.ajax({
+      type: 'POST',
+      url: "{% url 'recorder:presenter_post' %}",
+      data: { "presenter": val },
+      success: function(response) {
+        data_send = false;
+      },
+      error: function(response) {
+        // alert the error if any error occured
+        console.log("[send_presenter_value] response: " +response)
+      }
+    });
+  }
+</script>
+{% endblock more_script %}

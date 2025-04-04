@@ -1,0 +1,18 @@
+/** Dyslexia mode for Esup Pod **/
+
+/* OpenDyslexic Font via CDN */
+@font-face {
+  font-family: "Open Dyslexic";
+  src: url("https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.woff")
+    format("woff");
+}
+
+.dyslexia-switch-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.dyslexia-switch-wrapper em {
+  margin-left: 10px;
+  font-size: 1rem;
+}

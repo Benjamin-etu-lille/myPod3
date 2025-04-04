@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load i18n l10n %}
+{% load static %}
+{% load thumbnail %}
+
+{% block page_extra_head %}
+  <link href="{% static 'playlist/css/playlist.css' %}?ver={{ VERSION }}" rel="stylesheet">
+{% endblock page_extra_head %}
+
+{% block breadcrumbs %}{{ block.super }} <li class="breadcrumb-item active" aria-current="page">{{page_title}}</li>{% endblock %}
+
+{% block page_content %}
+  <div class="row videos-list-header">
+    {% if playlists|length != 0 %}
+      <h2 id="playlist_count" class="page_title col-md-8 mb-2">
+        {% blocktrans count counter=playlists|length %}{{ counter }} playlist found{% plural %}{{ counter }} playlists found{% endblocktrans %}
+      </h2>
+      {% if playlists|length > 1 %}
+        <form id="sortForm" action="{% url 'playlist:list' %}" method="get" class="filterSortForms col-md-4 mb-2">
+          {% include "playlist/playlist_sort_select.html" %}
+        </form>
+      {% endif %}
+    {% else %}
+      <div class="alert alert-info">
+        <h3>{% trans "No playlists found"%}</h3>
+        <p>{% trans "No playlist matches the selected filter. Change filter or use the “Add a playlist” button to add one." %}</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="d-grid gap-2 d-md-flex justify-content-md mb-2">
+    <a class="initials btn btn-primary pod-btn-primary btn-sm" href="{% url 'playlist:add' %}" title="{% trans 'Add a new playlist' %}" data-bs-toggle="tooltip" data-bs-placement="bottom">
+      <i class="bi bi-plus pod-add" aria-hidden="true"></i><span>{% trans "Add a playlist" %}</span>
+    </a>
+  </div>
+
+  <div class="infinite-container pod-infinite-container" id="playlists_list" data-number-playlists={{ playlists|length }}>
+    {% for playlist in playlists %}
+      {% include "playlist/playlist_card.html" %}
+    {% endfor %}
+  </div>
+{% endblock page_content %}
+
+{% block collapse_page_aside %}
+  {% if request.user.is_authenticated %}
+    {{ block.super }}
+  {% endif %}
+{% endblock collapse_page_aside %}
+
+{% block page_aside %}
+  {% if request.user.is_authenticated %}
+    {% include 'playlist/filter_aside.html' %}
+  {% endif %}
+{% endblock page_aside %}
+
+{% block more_script %}
+  {% if request.user.is_authenticated %}
+    <script src="{% static 'js/filter-aside-element-list-refresh.js' %}?ver={{VERSION}}"></script>
+    <script src="{% static 'playlist/js/filter-aside-playlist-list-refresh.js' %}?ver={{VERSION}}"></script>
+  {% endif %}
+{% endblock more_script %}

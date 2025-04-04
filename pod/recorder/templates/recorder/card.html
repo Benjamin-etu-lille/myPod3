@@ -1,0 +1,24 @@
+{% load i18n %}
+{% spaceless %}
+
+<div class="card box-shadow pod-card--video video-card"> <!-- the good one -->
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted time">{{record.recorder.name}}</small>
+        <span class="text-muted small">
+          <span title="{% trans 'Date of recording.' %}">
+            {{ record.date_added }}
+          </span>
+        </span>
+      </div>
+    </div>
+    <div class="card-body p-5 text-center">
+      <h3 class="h5 card-subtitle">
+        {{record.filename|truncatechars:43}}
+      </h3>
+    </div>
+    <footer class="card-footer text-center">
+      {% include "recorder/link_record.html" %}
+    </footer>
+</div>
+{% endspaceless %}

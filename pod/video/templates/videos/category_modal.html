@@ -1,0 +1,46 @@
+{% load i18n %}
+{% load video_filters %}
+
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal_title" id="modal_title">{{ modal_title }}</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+
+        {% if modal_action != "delete" %}
+
+        <div class="form-group">
+          <label for="cat-title" class="form-label">
+            {% trans "Category title" %}
+            <span class="required-star">*</span>
+          </label>
+          <input type="text" placeholder="{% trans 'Category title' %}" id="cat-title" name="cat-title"
+                 {% if category %} value="{{ category.title }}" {% endif %}
+                 class="cat-title_input form-control" required>
+        </div>
+        <div class="form-group mt-3">
+          <p class="form-label">{% trans "Check the videos to add in the category" %}</p>
+
+          {% include "videos/category_modal_video_list.html" %}
+        </div>
+
+        {% else %}
+            <span class="category-title">{{ category.title }}</span>
+            {% trans "Permanently delete your category?" %}
+        {% endif %}
+
+      </div>
+      <div class="modal-footer">
+      {% if modal_action == "add" %}
+        <button type="button" id="confirm-category-btn" data-action="add" class="btn btn-primary">{% trans "Save category" %}</button>
+      {% elif modal_action == "edit" %}
+        <button type="button" id="confirm-category-btn" data-action="edit" data-slug="{{ category.slug }}" class="btn btn-primary">{% trans "Save category" %}</button>
+      {% elif modal_action == "delete" %}
+        <button type="button" id="confirm-category-btn" data-action="delete" data-slug="{{ category.slug }}" class="btn btn-danger">{% trans "Delete" %}</button>
+      {% endif %}
+        <button type="button" id="cancel-dialog" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+      </div>
+    </div>
+  </div>

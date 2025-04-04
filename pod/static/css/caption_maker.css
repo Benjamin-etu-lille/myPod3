@@ -1,0 +1,231 @@
+/**
+ * Esup-Pod caption_maker styles
+ */
+
+#videoElm {
+  display: block;
+  border: solid 1px #999;
+  width: 100%;
+  min-height: 297px;
+}
+
+.video-error {
+  display: block;
+  background-color: #999;
+  width: 100%;
+  min-height: 297px;
+  color: white;
+  text-align: center;
+  padding: 12px;
+}
+
+#video-error {
+  display: none;
+}
+
+#caption-title {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-height: 32px;
+}
+
+#text-caption-entry {
+  text-align: center;
+}
+
+#text-caption-entry.playing {
+  background-color: var(--pod-background-dark);
+  color: white;
+}
+
+.shortcut-key {
+  display: inline-block;
+  border: 2px solid #222;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-weight: 600;
+  margin-right: 8px;
+  margin-left: 8px;
+  min-width: 35px;
+  text-align: center;
+}
+
+.shortcut-key svg {
+  transform: translateY(-2px);
+}
+
+/* the list of captions */
+.gray-no-video {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid #e1e1e1;
+}
+
+.video-section {
+  float: left;
+  min-height: 425px;
+  width: 49%;
+  padding: 24px 0;
+  padding-right: 24px;
+}
+
+.caption-content-div {
+  border-left: 1px solid #e1e1e1;
+  display: inline-block;
+  width: 49%;
+}
+
+.caption-content-div .caption_title {
+  display: flex;
+  position: relative;
+}
+
+.caption-content-div svg {
+  width: 20px;
+  color: var(--secondary);
+  margin-left: 4px;
+}
+
+.caption-content-div .caption_title svg:hover + .help_text {
+  display: block;
+}
+
+.caption-content-div .help_text {
+  display: none;
+  position: absolute;
+  background: var(--pod-primary);
+  color: #fff;
+  width: calc(100% - 110px);
+  right: 0;
+  padding: 0.4em 0.8em;
+  border-radius: 4px;
+  box-shadow: 4px 4px 10px #ccc;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.captions-editor {
+  height: 470px;
+  overflow-y: auto;
+}
+
+#new-captions-editor {
+  margin-bottom: 6px;
+}
+
+.new-editor-block {
+  border-bottom: 1px solid #e1e1e1;
+  padding: 16px 8px;
+  transition: 0.2s;
+}
+
+.new-editor-block:hover {
+  background-color: var(--pod-background-neutre1-bloc-hover);
+}
+
+.new-editor-block > textarea {
+  width: 77%;
+}
+
+.captionBeingEdited {
+  border-left: 3px solid var(--pod-primary);
+  background-color: var(--pod-background-neutre1-bloc-hover);
+}
+
+.captionTimestamps {
+  line-height: 32px;
+}
+
+.new-editor-block a {
+  display: block;
+}
+
+.new-editor-block input {
+  margin: 6px 0;
+  max-width: 78px;
+  display: inline-block;
+  padding: 4px;
+}
+
+#add-subtitle svg {
+  color: var(--pod-link-color);
+}
+
+.makerNavbarRight {
+  float: right;
+}
+
+@media only screen and (width <= 1000px) {
+  .makerNavbarRight {
+    float: none;
+  }
+}
+
+#captionmakerModal.save > .modal-dialog {
+  max-width: 1000px;
+}
+
+#editor-tips-and-go-back {
+  width: 100%;
+  clear: both;
+  padding-top: 24px;
+  display: block;
+  border-top: 1px solid #e1e1e1;
+}
+
+@media only screen and (max-width: 800px) {
+  .gray-no-video {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gray-no-video > div {
+    width: 100% !important;
+  }
+
+  .gray-no-video div:first-child {
+    overflow: hidden;
+    margin: 0;
+    margin-bottom: 1em;
+    min-height: unset !important;
+  }
+
+  .new-editor-block > textarea {
+    width: 60%;
+  }
+}
+
+.keyframe {
+  position: absolute;
+  z-index: 2;
+  height: 11px;
+}
+
+.keyframe-left {
+  transform: translate(-6px, -11px);
+}
+
+.keyframe-right {
+  transform: translate(0, -11px);
+}
+
+.regionHighligh {
+  position: absolute;
+  z-index: 1;
+  background-color: rgb(173 50 122 / 50%);
+  height: 3px;
+}
+
+::-webkit-scrollbar {
+  padding: 2px;
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: none;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pod-primary);
+  border-radius: 2px;
+}

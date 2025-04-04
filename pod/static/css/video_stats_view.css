@@ -1,0 +1,11 @@
+/**
+ * Esup-Pod video stats styles
+ */
+
+.grid-container {
+  padding-top: 4em;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  min-height: calc(100vh - 255px);
+}

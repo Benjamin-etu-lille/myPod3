@@ -1,0 +1,100 @@
+"""Esup-Pod Studio Recorder urls digest."""
+
+from django.urls import path, re_path
+
+from pod.recorder.views import (
+    digest_admin_ng_series,
+    digest_info_me_json,
+    digest_ingest_addAttachment,
+    digest_ingest_addCatalog,
+    digest_ingest_addDCCatalog,
+    digest_ingest_addTrack,
+    digest_ingest_createMediaPackage,
+    digest_ingest_ingest,
+    digest_presenter_post,
+    digest_settings_toml,
+    digest_available,
+    digest_studio_static,
+    digest_hosts_json,
+    digest_capture_admin,
+    digest_capture_admin_configuration,
+)
+
+app_name = "recorder_digest"
+urlpatterns = [
+    re_path(
+        r"^services/hosts.json$",
+        digest_hosts_json,
+        name="hosts_json",
+    ),
+    path(
+        "capture-admin/agents/<path:name>/configuration",
+        digest_capture_admin_configuration,
+        name="capture_admin_config",
+    ),
+    re_path(
+        r"^capture-admin/agents/(?P<name>.*)$",
+        digest_capture_admin,
+        name="capture_admin_agent",
+    ),
+    re_path(
+        r"^admin-ng/series/series.json$",
+        digest_admin_ng_series,
+        name="admin_ng_series",
+    ),
+    re_path(
+        r"^services/available.json$",
+        digest_available,
+        name="services_available",
+    ),
+    path(
+        "presenter_post",
+        digest_presenter_post,
+        name="presenter_post",
+    ),
+    re_path(
+        r"^settings.toml$",
+        digest_settings_toml,
+        name="settings_toml",
+    ),
+    re_path(
+        r"^info/me.json$",
+        digest_info_me_json,
+        name="info_me_json",
+    ),
+    re_path(
+        r"^static/(?P<file>.*)$",
+        digest_studio_static,
+        name="studio_static",
+    ),
+    path(
+        "ingest/createMediaPackage",
+        digest_ingest_createMediaPackage,
+        name="ingest_createMediaPackage",
+    ),
+    path(
+        "ingest/addDCCatalog",
+        digest_ingest_addDCCatalog,
+        name="ingest_addDCCatalog",
+    ),
+    path(
+        "ingest/addAttachment",
+        digest_ingest_addAttachment,
+        name="ingest_addAttachment",
+    ),
+    path(
+        "ingest/addTrack",
+        digest_ingest_addTrack,
+        name="ingest_addTrack",
+    ),
+    path(
+        "ingest/addCatalog",
+        digest_ingest_addCatalog,
+        name="ingest_addCatalog",
+    ),
+    path(
+        "ingest/ingest",
+        digest_ingest_ingest,
+        name="ingest_ingest",
+    ),
+]

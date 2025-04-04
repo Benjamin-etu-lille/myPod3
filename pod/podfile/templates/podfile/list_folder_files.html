@@ -1,0 +1,258 @@
+{% load i18n static podfile_filters %}
+<!-- Image and text -->
+<nav class="px-3 navbar navbar-expand-lg navbar-link bg-primary" data-bs-theme="dark">
+  <div class="container-fluid">
+    <h2 class="text-truncate m-0 navbar-brand">
+      <span
+        class="current-folder-name"
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+      >
+        <i class="current-folder-icon bi bi-folder-fill" aria-hidden="true"></i>{{folder.name}} - {{folder.get_all_files|length}} {% trans 'file' %}{{ folder.get_all_files|length|pluralize }}
+      </span>
+    </h2>
+    <button
+      class="navbar-toggler btn btn-outline-primary active"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#currentfolder"
+      aria-controls="currentfolder"
+      aria-expanded="false"
+      title="{% trans 'Toggle file actions menu' %}"
+    >
+      <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="currentfolder">
+      <ul class="navbar-nav me-auto">
+        {% if request.user == folder.owner or request.user.is_superuser or perms.podfile.change_userfolder or request.user in folder.users.all %}
+          {% if folder.name != "home" %}
+            <li class="nav-item">
+              <button
+                id="currentfolderrename"
+                type="button"
+                class="nav-link"
+                data-bs-toggle="modal"
+                data-bs-target="#folderModalCenter"
+                data-oldname="{{folder.name}}"
+                data-folderid="{{folder.id}}"
+                title="{% blocktrans with folder_name=folder.name %}Rename folder “{{ folder_name }}”{% endblocktrans %}"
+              >
+                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+              </button>
+            </li>
+            {% if request.user == folder.owner or request.user.is_superuser or perms.podfile.change_userfolder %}
+              <li class="nav-item">
+                <button
+                  id="currentfolderdelete"
+                  type="button"
+                  class="nav-link"
+                  data-folderid="{{folder.id}}"
+                  title="{% blocktrans with folder_name=folder.name %}Delete folder “{{ folder_name }}”{% endblocktrans %}"
+                >
+                  {% csrf_token %}
+                  <i class="bi bi-trash3-fill" aria-hidden="true"></i>
+                </button>
+              </li>
+            {% endif %}
+          {% endif %}
+
+          {% if folder.owner == request.user or request.user.is_superuser %}
+            <li class="nav-item">
+              <button
+                id="currentfoldershare"
+                type="button"
+                class="nav-link"
+                data-bs-toggle="modal"
+                data-name="{{folder.name}}"
+                data-bs-target="#shareModalCenter"
+                data-folderid="{{folder.id}}"
+                title="{% blocktrans with folder_name=folder.name %}Share folder “{{ folder_name }}” with another user{% endblocktrans %}"
+              >
+                <i class="bi bi-share" aria-hidden="true"></i>
+              </button>
+            </li>
+          {% endif %}
+        {% endif %}
+
+        <li class="nav-item">
+          <form
+            method="POST"
+            id="formuploadfile"
+            enctype="multipart/form-data"
+            action="{% url 'podfile:uploadfiles' %}"
+          >
+            {% csrf_token %}
+            <input type="hidden" name="folderid" value="{{folder.id}}">
+            {% if type %}
+            <input type="hidden" name="type" value="{{type}}">
+            {% endif %}
+            <div class="custom-file">
+              <button id='podfile_submit_button' type="submit" class="d-none"></button>
+              <label for="ufile" class="visually-hidden">{% trans "Upload Files" %}</label>
+              <input
+                  type="file"
+                  class="btn nav-link bi bi-file-earmark-arrow-up-fill podfile-icon-selector"
+                  id="ufile"
+                  name="ufile"
+                  title="{% trans 'Upload Files' %}"
+                  multiple
+                >
+            </div>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<div class="row loadingformfiles" style="display: none">
+  <div class="d-flex align-items-center col">
+    <strong>{% trans "Loading…" %}</strong>
+    <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+  </div>
+</div>
+<div class="row" id="listfiles">
+  {% for file in folder.get_all_files %}
+  <div class="p-0">
+    <div class="card bg-light mb-3 m-1">
+      <div class="card-header p-0 m-0" style="background: none">
+        {% if request.user == file.created_by or request.user.is_superuser or perms.podfile.change_customfilemodel or perms.podfile.change_customimagemodel or request.user in folder.users.all %}
+        <nav class="navbar p-0 m-0">
+          <button
+            class="btn btn-link btn-lg p-0 m-0"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#current{{file.class_name}}{{file.id}}"
+            aria-expanded="false"
+            aria-controls="current{{file.class_name}}{{file.id}}"
+            style="opacity:.8;"
+            title="{% trans 'Toggle file actions menu' %}"
+          >
+            <span class="navbar-toggler-icon file-options-icon">
+              <i class="bi bi-three-dots-vertical" aria-hidden="true"></i>
+            </span>
+          </button>
+          <div class="file collapse bg-primary" data-bs-theme="dark" id="current{{file.class_name}}{{file.id}}">
+            <ul class="file-navbar navbar-nav me-auto p-0 m-0">
+              <li class="nav-item p-0 m-0">
+                <button
+                  type="button"
+                  class="btn btn-link p-0 m-0"
+                  data-bs-toggle="modal"
+                  data-bs-target="#folderModalCenter"
+                  data-filename="{{file.name}}"
+                  data-fileid="{{file.id}}"
+                  data-folderid="{{file.folder.id}}"
+                  data-filetype="{{file.class_name}}"
+                  title="{% trans 'Modify' %}"
+                >
+                  <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                </button>
+              </li>
+              <li class="nav-item p-0 m-0">
+                <form method="post" action="{% url 'download_file' %}" class="form-inline">
+                  {% csrf_token %}
+                  <input type="hidden" value="{{file.file.name}}" name="filename">
+                  <button type="submit" class="btn btn-link p-0 m-0"
+                          title="{% trans 'Download' %}">
+                    <span class="download-file" id="download-file-icon">
+                      <i class="bi bi-box-arrow-down" aria-hidden="true"></i>
+                    </span>
+                  </button>
+                </form>
+              </li>
+              <li class="nav-item p-0 m-0">
+                <button
+                  type="button"
+                  class="btn btn-link p-0 m-0 btn-delete-file"
+                  data-fileid="{{file.id}}"
+                  data-filetype="{{file.class_name}}"
+                  title="{% trans 'Delete file' %}"
+                >
+                  {% csrf_token %}
+                  <i class="bi bi-trash3-fill" aria-hidden="true"></i>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        {% endif %}
+      </div>
+      {% if file.class_name.lower == "customimagemodel" and file.file_exist %}
+        {% if type.lower == "image" and file.class_name.lower == "customimagemodel" %}
+          <a
+            href="{{file.file.url}}"
+            class="card-image {% if request %} file-image {% endif %}"
+            title="{{file.name}}"
+            target="_blank"
+            data-fileid="{{file.id}}"
+            data-filetype="{{file.class_name}}"
+          >
+            <img class="card-img-top p-1" src="{{file.file.url}}" alt="" loading="lazy">
+          </a>
+        {% else %}
+          <img class="card-img-top p-1" src="{{file.file.url}}" alt="" loading="lazy">
+        {% endif %}
+      {% else %}
+        {% with file.file.name|icon_exists as icon %}
+          {% if type.lower == "file" and file.class_name.lower == "customfilemodel" or type.lower == "image" and file.class_name.lower == "customimagemodel" %}
+            <a
+              href="{{file.file.url}}"
+              class="card-image {% if request %} file-image {% endif %}"
+              title="{{file.name}}"
+              target="_blank"
+              data-fileid="{{file.id}}"
+              data-filetype="{{file.class_name}}"
+            >
+              <img class="card-img-top p-1" src="{% static 'podfile/images/icons/'|add:icon|add:'.png' %}" alt="" loading="lazy">
+            </a>
+          {% else %}
+            <img class="card-img-top p-1" src="{% static 'podfile/images/icons/'|add:icon|add:'.png' %}" alt="" loading="lazy">
+          {% endif %}
+        {%endwith%}
+      {% endif %}
+      <div class="card-body">
+        <p class="card-text p-0 m-0">
+          {% if type %}
+            {% if type == "image" and file.class_name == "CustomImageModel" %}
+              <a
+                href="{{file.file.url}}"
+                class="card-title pod-card__title {% if request.is_ajax %}file-name{% endif %}"
+                title="{% blocktrans with title=file.name %}See the picture “{{ title }}”.{% endblocktrans %}"
+                target="_blank"
+                data-fileid="{{file.id}}"
+                data-filetype="{{file.class_name}}"
+              >
+                <small class="text-muted text-truncate">{{file.name}}</small>
+              </a>
+            {% elif type == "file" and file.class_name == "CustomFileModel"%}
+              <a
+                href="{{file.file.url}}"
+                class="card-title pod-card__title {% if request.is_ajax %}file-name{% endif %}"
+                title="{% blocktrans with title=file.name %}Download the file “{{ title }}”.{% endblocktrans %}"
+                target="_blank"
+                data-fileid="{{file.id}}"
+                data-filetype="{{file.class_name}}"
+              >
+                <small class="text-muted text-truncate">{{file.name}}</small>
+              </a>
+            {% else %}
+              <small class="text-muted text-truncate">{{file.name}}</small>
+            {% endif %}
+          {% else %}
+            <a
+              href="{{file.file.url}}"
+              class="card-title pod-card__title {% if request.is_ajax %}file-name{% endif %}"
+              title="{% blocktrans with title=file.name %}Get the file “{{ title }}”.{% endblocktrans %}"
+              target="_blank"
+              data-fileid="{{file.id}}"
+              data-filetype="{{file.class_name}}"
+            >
+              <small class="text-muted text-truncate">{{file.name}}</small>
+            </a>
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>

@@ -1,0 +1,61 @@
+{% load i18n l10n %}
+{% load playlist_buttons %}
+{% load favorites_playlist %}
+{% spaceless %}
+  {% user_can_edit_or_remove playlist as can_edit_or_remove %}
+  {% get_playlist_name playlist as playlist_name %}
+  {% blocktrans asvar playlist_title %}View the playlist “{{playlist_name}}”{% endblocktrans %}
+
+  {% with playlist_name|capfirst|truncatechars:19 as playlist_label %}
+  <div class="card infinite-item pod-card--video">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <a
+          class="link-for-playlist"
+          href="{% url 'playlist:content' playlist.slug %}"
+          title="{% if playlist.description %}{% get_playlist_description playlist %}{% else %}{{ playlist_name }}{% endif %}"
+        >
+          <div class="text-muted">
+            <span>
+              <strong>{{ playlist_label }}</strong>
+            </span>
+            <br>
+            <small>
+              {{ playlist.get_number_video }}
+              {% if playlist.get_number_video > 1 %}
+                {% trans "videos" %}
+              {% else %}
+                {% trans "video" %}
+              {% endif %}
+            </small>
+          </div>
+        </a>
+        {% include "playlist/playlist_visibility_icon.html" with playlist=playlist %}
+      </div>
+    </div>
+    <div class="card-thumbnail">
+      {% if can_edit_or_remove %}
+        <footer class="card-footer card-footer-pod p-0 m-0 link-center-pod link-playlist">
+          {% include "playlist/playlist_link.html" %}
+        </footer>
+      {% endif %}
+      <a
+        class="link-center-pod"
+        href="{% url 'playlist:content' playlist.slug %}"
+        title="{{ playlist_title }}"
+      >
+        <img class="card-img-bottom" loading="lazy"
+          {% if playlist.get_number_video > 0 %}
+            src="{{ playlist.get_first_video.get_thumbnail_url }}"
+          {% else %}
+            src="{{ DEFAULT_PLAYLIST_THUMBNAIL }}"
+          {% endif %}
+          alt="{% blocktrans %}See the playlist “{{ playlist_label }}”{% endblocktrans %}">
+      </a>
+    </div>
+    <div class="card-body">
+      {% include "playlist/button_start_playlist.html" %}
+    </div>
+  </div>
+  {% endwith %}
+{% endspaceless %}

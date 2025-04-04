@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load i18n static custom_tags thumbnail %}
+{% load video_filters video_tags %}
+{% load favorites_playlist %}
+
+{% block opengraph %}
+  {% include 'videos/video_opengraph.html' %}
+{% endblock opengraph %}
+
+{% block page_extra_head %}
+  {% include 'videos/video-header.html' %}
+  <link rel="stylesheet" href="{% static 'css/comment-style.css' %}?ver={{VERSION}}">
+  <style>
+    {{channel.style}}
+    {% if channel.color %}
+      body {
+        background-color: {{channel.color}};
+      }
+    {% endif %}
+  </style>
+{% endblock page_extra_head %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% include 'videos/video_breadcrumbs.html' %}
+{% endblock %}
+
+{% block page_title %}
+  {% include 'videos/video_page_title.html' %}
+{% endblock %}
+
+{% block page_content %}
+  {% include 'videos/video_page_content.html' %}
+{% endblock page_content %}
+
+{% block page_aside %}
+  {% include 'videos/video_page_aside.html' %}
+{% endblock page_aside %}
+
+{% block more_script %}
+  {% if playlist_in_get %}
+    {% include 'enrichment/video_enrichment_more_script.html' %}
+  {% else %}
+    {% include 'videos/video_more_script.html' %}
+  {% endif %}
+{% endblock more_script %}

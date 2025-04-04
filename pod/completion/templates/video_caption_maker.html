@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% load i18n %}
+{% load static %}
+
+{% block page_extra_head %}
+  <link rel="stylesheet" href="{% static 'css/caption_maker.css' %}?ver={{VERSION}}">
+  {% include 'videos/video-header.html' %}
+{% endblock page_extra_head %}
+
+{% block breadcrumbs %}
+  {{block.super}}
+  <li class="breadcrumb-item"><a href="{% url 'video:dashboard' %}">{% trans "Dashboard" %}</a></li>
+
+  <li class="breadcrumb-item">
+    <a href="{% url 'video:video' slug=video.slug %}">
+      {{video.title|title|truncatechars:45}}
+    </a>
+  </li>
+  <li class="breadcrumb-item active"  aria-current="page">
+    {{page_title}}
+  </li>
+{% endblock %}
+
+{% block page_content %}
+<div class="overflow-hidden">
+
+  {% if ai_enrichment %}
+    <div class="alert alert-success" role="alert">
+      {% trans "Enrichment is ready. You can now edit the subtitles." %}
+    </div>
+  {% endif %}
+
+  <div class="row align-items-center mb-4 justify-content-end">
+    <div class="col-auto">
+      <label class="col-form-label" for="caption-file-name">{% trans "File" %}</label>
+    </div>
+    <div class="col-4">
+      <input class="form-control" id="caption-file-name" name="file_name" type="text" form="form_save_captions">
+    </div>
+    <div class="col-auto">
+      <label class="col-form-label" for="caption-kind-select">{% trans "Kind" %}</label>
+    </div>
+    <div class="col-auto">
+      <select id="caption-kind-select" name="kind" form="form_save_captions" class="form-select">
+        <option value="subtitles" {% if track_kind == "subtitles" %} selected {% endif %} > {% trans "Subtitles" %} </option>
+        <option value="captions" {% if track_kind == "captions" %} selected {% endif %} > {% trans "Captions" %} </option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="col-form-label" for="caption-language-select">{% trans "Language" %}</label>
+    </div>
+    <div class="col-auto">
+      <select id="caption-language-select" name="lang" form="form_save_captions" class="form-select">
+        {% for lang_group in languages %}
+          <optgroup label="{{ lang_group.0 }}">
+            {% for lang in lang_group.1 %}
+              <option value="{{ lang.0 }}" {% if track_language == lang.0 %} selected {% endif %} >{{ lang.1 }}</option>
+            {% endfor %}
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <button id="switch-old-edit-mode" class="btn btn-primary btn-sm">
+        <i class="bi bi-toggles" aria-hidden="true"></i>&nbsp;{% trans "Change mode" %}
+      </button>
+    </div>
+  </div>
+</div>
+
+{% if messages %}
+  <div id="base-message-alert">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
+    </div>
+  {% endfor %}
+  </div>
+{% endif %}
+
+
+<div class="gray-no-video">
+  <div class="video-section">
+    {% include 'videos/video-element.html' %}
+    <div id="video-error" class="video-error" style="display: none;"></div>
+    <div id="caption-title"></div>
+    <div>
+      <label class="col-form-label" for="text-caption-entry">{% trans "Caption" %}</label>
+      <textarea class="form-control" id="text-caption-entry" autocomplete="off" cols="40" rows="3" wrap="hard" maxlength="110"></textarea>
+    </div>
+    <div >
+      <button id="play-button" class="btn btn-primary btn-sm mt-1">
+        <i class="bi bi-play" aria-hidden="true"></i>&nbsp;{% trans "Play" %}
+      </button>
+      <button id="pause-button" class="btn btn-primary btn-sm mt-1">
+        <i class="bi bi-pause" aria-hidden="true"></i>&nbsp;{% trans "Pause" %}
+      </button>
+      <button id="just-save-caption" class="btn btn-primary btn-sm mt-1">
+        <i class="bi bi-save" aria-hidden="true"></i>&nbsp;{% trans "Save" %}
+      </button>
+      <button id="save-caption-and-play" class="btn btn-primary btn-sm mt-1">
+        <i class="bi bi-save" aria-hidden="true"></i>&nbsp;{% trans "Save &amp; Continue" %}
+      </button>
+    </div>
+  </div>
+  <div class="caption-content-div p-1">
+    <div id="raw-captions-editor" style="display:none;" class="mb-2">
+      <label class="form-label" for="caption-content">{% trans "File content" %}</label>
+      <textarea class="form-control captions-editor" id="caption-content"></textarea>
+    </div>
+    <div class="captions-editor text-center container" id="new-captions-editor">
+      <h2 class="h3 my-4" id="no-captions-text">{% trans "No captions" %}</h2>
+      <button id="add-subtitle" type="button" class="btn btn-outline-primary btn-lg my-4">
+        <i class="bi bi-plus" aria-hidden="true"></i>&nbsp;{% trans "Add a caption/subtitle" %}
+      </button>
+    </div>
+    <div>
+      <form method="post" class="float-sart" action="{% url 'video:completion:video_caption_maker' slug=video.slug %}" id="captionmaker_form">
+        {% csrf_token %}
+        <div class="m-1">
+          {% if form_make_caption.errors %} <p class="alert alert-danger" role="alert">{% trans "One or more errors have been found in the form." %}</p> {% endif %}
+          {% for field in form_make_caption.visible_fields %}
+            {% if field.name == 'src' %}
+            {% spaceless %}
+            <div class="form-group">
+              {{ field.errors }}
+              {{ field }}
+              {% if field.help_text %} <small id="{{field.id_for_label}}Help" class="form-text">{{ field.help_text|safe }}</small> {% endif %}
+              {% if field.field.required %} <div class="invalid-feedback">{% trans "Please provide a valid value for this field." %}</div> {% endif %}
+            </div>
+            {% endspaceless %}
+            {% endif %}
+          {% endfor %}
+          {% if form_make_caption.instance.id %} <input type="hidden" id="user_id" name="user_id" value="{{form_make_caption.instance.id}}"> {% endif %}
+        </div>
+        {{form_make_caption.media}}
+      </form>
+
+      <form class="form_save completion float-start" id="form_save_captions" action="{% url 'video:completion:video_caption_maker' slug=video.slug %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+        <input type="hidden" name="file_id">
+        <div class="m-2">
+          <input type="submit" value="{% trans 'Save Captions' %}" id="save_captions" class="btn btn-primary btn-sm">
+          <button id="clearAllCaptions" class="btn btn-primary btn-sm">
+            <i class="bi bi-eraser-fill" aria-hidden="true"></i>&nbsp;{% trans "Clear All" %}
+          </button>
+        </div>
+        {% if active_model_enrich %}<input type="checkbox" value="true" name="enrich_ready"> {% trans 'Enrich Model' %} {% endif %}
+      </form>
+
+    </div>
+  </div>
+  <div id="editor-tips-and-go-back">
+    <span class="float-start">
+      <button id="show-shortcut-tips" class="btn btn-primary btn-sm">
+        <i class="bi bi-keyboard" aria-hidden="true"></i>&nbsp;{% trans "Key Schortcuts" %}
+      </button>
+      <div id="shortcuts-block" style="display:none" class="shadow p-3 mb-5 bg-white rounded">
+        <h2 class="h3">{% trans "Video Player" %}</h2>
+        <p><div class="shortcut-key">{% trans "Space" %}</div> {% trans "Pause / unpause" %}</p>
+        <p><div class="shortcut-key"><i class="bi bi-arrow-left" width="18px" height="18px" aria-hidden="true"></i></div>&nbsp;{% trans "Rewind the video 10 seconds back" %}</p>
+        <p><div class="shortcut-key"><i class="bi bi-arrow-right" width="18px" height="18px" aria-hidden="true"></i></div>&nbsp;{% trans "Skip 10 seconds" %}</p>
+        <p><div class="shortcut-key">M</div>&nbsp;{% trans "Mute/unmute video" %}</p>
+        <br>
+        <h5>{% trans "Captions Editor" %}</h5>
+        <p><div class="shortcut-key">PgUP</div>&nbsp;{% trans "Select previous caption" %}</p>
+        <p><div class="shortcut-key">PgDOWN</div>&nbsp;{% trans "Select next caption" %}</p>
+        <p><div class="shortcut-key">Alt</div>+<div class="shortcut-key">{% trans "Del" %}</div>&nbsp;{% trans "Delete selected caption" %}</p>
+        <p><div class="shortcut-key">INSERT</div>&nbsp;{% trans "Add new caption" %}</p>
+        <p><div class="shortcut-key">CTRL</div>+<div class="shortcut-key">S</div>&nbsp;{% trans "Save" %}</p>
+        <p><div class="shortcut-key">End</div>&nbsp;{% trans "Save &amp; Continue" %}</p>
+        <br>
+        <p><div class="shortcut-key">?</div>&nbsp;{% trans "Show/hide this window" %}</p>
+      </div>
+    </span>
+    <span class="float-end">
+      <a href="{% url 'video:completion:video_completion' slug=video.slug %}" class="btn btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>&nbsp;{% trans "Back to the completion"%}
+      </a>
+    </span>
+  </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="confirm-save-label" aria-hidden="true" id="save-captions-modal">
+  <div class="modal-dialog">
+    <div class="modal-content" style="min-height: auto; width: auto;">
+      <div class="modal-header">
+        <h2 class="modal-title h3" id="confirm-save-label">
+          <i class="bi bi-save" aria-hidden="true"></i>&nbsp;{% trans "Save captions file."%}
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>{% trans "You have loaded a file. Do you want to override it?"%}</p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="modal-btn-new"> {% trans "New" %} </button>
+        <button type="button" class="btn btn-warning" id="modal-btn-override"> {% trans "Override"%} </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock page_content %}
+
+{% block collapse_page_aside %}{% endblock collapse_page_aside %}
+
+{% block page_aside %}{% endblock page_aside %}
+
+{% block more_script %}
+  <script>
+    var current_folder = {{ current_folder.id }};
+  </script>
+  {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded',function () {
+        triggerAlertClose();
+      });
+    </script>
+  {% endif %}
+  <script src="{% static 'js/caption_maker.js' %}?ver={{ VERSION }}"></script>
+  <script src="{% static 'js/completion.js' %}?ver={{ VERSION }}"></script>
+  {% include "videos/video-script.html" %}
+{% endblock more_script %}

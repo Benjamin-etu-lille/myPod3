@@ -1,0 +1,28 @@
+{% extends 'videos/video-iframe.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block page_extra_head %}
+  {% include 'videos/video-header.html' %}
+  <link id="enrichment_style_id" href="{% static 'css/videojs-slides.css' %}?ver={{VERSION}}" rel="stylesheet">
+{% endblock page_extra_head %}
+
+{% block page_title %}{% if channel %}{{channel.title}} - {% endif %}{% if theme %}{{theme.title}} - {% endif %}({% trans 'Enriched' %}) {{video.title}}{% endblock %}
+
+{% block video-element %}
+  {% if form %}
+    {% include 'videos/video-form.html' %}
+  {% else %}
+    {% include 'enrichment/video-element-enrichment.html' %}
+  {% endif %}
+{% endblock video-element %}
+
+{% block more_script %}
+  {{block.super}}
+  <script>
+    var enrichmentIsOn = true;
+  </script>
+
+  <script id="enrichment_script_id" src="{% static 'js/videojs-slides.js' %}?ver={{VERSION}}"></script>
+  {% include 'enrichment/video_enrichment-script.html' %}
+{% endblock more_script %}

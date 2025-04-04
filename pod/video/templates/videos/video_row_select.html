@@ -1,0 +1,99 @@
+{% load i18n favorites_playlist playlist_buttons video_tags %}
+
+{% spaceless %}
+  {% if playlist %}
+    {% load playlist_buttons %}
+    {% can_see_playlist_video video playlist as can_see_video %}
+  {% endif %}
+
+  <input class="form-check-input card-select-input me-4 my-0" type="checkbox" aria-label="{% blocktrans with video_title=video.title %}Select video “{{ video_title }}”{% endblocktrans %}"
+    {% if not category_modal %}
+    onchange="toggleSelectedVideo(this, 'videos_list')"
+    {% else %}
+    onchange="toggleSelectedVideo(this, 'category-modal-videos-list')"
+    {% if video.id in category_videos %}checked{% endif %}
+    {% endif %}
+    data-slug="{{video.slug}}"
+  >
+
+  <div class="checked-overlay">
+    <span class="card-selected" title="{% trans 'Selected' %}">
+      <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+    </span>
+  </div>
+  <!-- video as row -->
+  <div class="col-1 thumbnail-item-video-row">
+    <a href="{{video.get_absolute_url}}{% if video.is_draft and fromEvent %}{{ video.get_hashkey }}{% endif %}">
+      {{video.get_thumbnail_card|safe}}
+    </a>
+  </div>
+  <span class="col-3 title-item-video-row dashboard-video-title" data-video-title="{{video.title|capfirst}}">
+    <a href="{{video.get_absolute_url}}{% if video.is_draft and fromEvent %}{{ video.get_hashkey }}{% endif %}" {% if video.title|length > 20 %}title="{{video.title|capfirst}}"{% endif %}>{{video.title|capfirst|truncatechars:20}}</a>
+  </span>
+  <span class="col-2" title="{% trans 'Duration' %}" data-bs-toggle="tooltip" data-bs-placement="bottom">
+    <span class="visually-hidden">{% trans 'Duration' %}</span>
+    <i class="bi bi-clock text-muted" aria-hidden="true"></i>&nbsp;{{ video.duration_in_time }}
+  </span>
+  <span class="col-3" title="{% trans 'Date added' %}" data-bs-toggle="tooltip" data-bs-placement="bottom">
+    <span class="visually-hidden">{% trans 'Date added' %}</span>
+    <i class="bi bi-calendar-check text-muted" aria-hidden="true"></i>&nbsp;{{ video.date_added|date }}
+  </span>
+
+  <div class="col-2 me-auto">
+    {% get_video_infos video as video_infos %}
+
+    <span title="{{ video_infos.password.translation }}"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom">
+      <i
+        {% if video_infos.password.status %}
+          class="bi bi-lock text-success"
+        {% else %}
+          class="bi bi-unlock"
+        {% endif %}
+        aria-hidden="true"></i>
+    </span>
+
+    <span title="{{ video_infos.draft.translation }}"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom">
+      <i
+        {% if video_infos.draft.status %}
+          class="bi bi-incognito"
+        {% else %}
+          class="bi bi-globe text-success"
+        {% endif %}
+        aria-hidden="true"></i>
+    </span>
+
+    <span title="{{ video_infos.chaptered.translation }}"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom">
+      <i
+        {% if video_infos.chaptered.status %}
+          class="bi bi-card-checklist text-success"
+        {% else %}
+          class="bi bi-card-list text-danger"
+        {% endif %}
+        aria-hidden="true"></i>
+    </span>
+
+    {% if video.is_video %}
+      <span title="{% trans 'Video content.' %}" data-bs-toggle="tooltip" data-bs-placement="bottom">
+        <i class="bi bi-film" aria-hidden="true"></i>
+      </span>
+    {% else %}
+      <span title="{% trans 'Audio content.' %}" data-bs-toggle="tooltip" data-bs-placement="bottom">
+        <i class="bi bi-soundwave" aria-hidden="true"></i>
+      </span>
+    {% endif %}
+  </div>
+
+  <div id="more-btn-group-{{ video.id }}" class="btn-group ms-auto" role="group">
+    <button id="more-actions-row-btn-{{ video.id }}" type="button" class="btn btn-link"
+            data-bs-toggle="dropdown" aria-expanded="false" title="{% trans 'Toggle actions menu' %}">
+      <i class="bi bi-three-dots more-actions-row-i" aria-hidden="true"></i>
+    </button>
+    {% include 'videos/link_video_dropdown_menu.html' %}
+  </div>
+{% endspaceless %}

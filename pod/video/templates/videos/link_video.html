@@ -1,0 +1,82 @@
+{% load i18n %}
+{% load favorites_playlist %}
+{% load playlist_buttons %}
+
+{% spaceless %}
+{% if playlist %}
+  {% user_can_edit_or_remove playlist as can_edit_or_remove %}
+  {% if not in_favorites_playlist and can_edit_or_remove%}
+    <a href="{% url 'playlist:remove-video' playlist.slug video.slug %}" title="{% trans 'Remove from playlist' %}" class="btn btn-link btn-lg pod-btn-social p-1 m-0 ms-1 remove-from-playlist-btn-link" id="remove-from-playlist-btn-{{ video.id }}" data-bs-toggle="tooltip" data-bs-placement="top">
+      <i class="bi bi-folder-minus card-footer-link-i" aria-hidden="true"></i>
+    </a>
+  {% endif %}
+{% endif %}
+
+{% is_favorite user video as is_favorite %}
+{% get_favorite_playlist user as fav_playlist %}
+{% if USE_PLAYLIST and USE_FAVORITES and video.is_draft is False and not hide_favorite_link is True %}
+  {% if is_favorite %}
+    <a href="{% url 'playlist:remove-video' fav_playlist.slug video.slug %}" title="{% trans 'Remove from favorite' %}" class="btn btn-link btn-lg pod-btn-social p-1 m-0 ms-1 remove-from-playlist-btn-link favorite-btn-link" id="favorite-btn-{{ video.id }}" aria-pressed="true" data-bs-toggle="tooltip" data-bs-placement="top" role="button">
+      <i class="bi bi-star-fill card-footer-link-i" aria-hidden="true"></i>
+    </a>
+  {% else %}
+    <a href="{% url 'playlist:add-video' fav_playlist.slug video.slug %}" title="{% trans 'Add in favorite' %}" class="btn btn-link btn-lg pod-btn-social p-1 m-0 ms-1 favorite-btn-link" id="favorite-btn-{{ video.id }}" aria-pressed="false" data-bs-toggle="tooltip" data-bs-placement="top" role="button">
+      <i class="bi bi-star card-footer-link-i" aria-hidden="true"></i>
+    </a>
+  {% endif %}
+
+{% endif %}
+{% if video.owner == request.user or request.user.is_superuser or request.user in video.additional_owners.all or perms.video.change_video %}
+  <a href="{% url 'video:video_edit' slug=video.slug %}" title="{% trans 'Edit the video' %}" class="btn btn-link btn-lg pod-btn-social p-1 m-0 ms-1" data-bs-toggle="tooltip" data-bs-placement="top">
+    <i class="bi bi-pencil-square card-footer-link-i" aria-hidden="true"></i>
+  </a>
+{% endif %}
+{% comment %}
+{% if request.resolver_match.namespace %}
+  {% with request.resolver_match.namespace as app %}
+    {% with ""|add:app|add:":edit_"|add:app as urleditapp %}
+      <a href="{% url urleditapp slug=video.slug %}" title="{% blocktrans %}Edit the {{app}}{% endblocktrans %}" class="btn btn-link btn-lg pod-btn-social p-1 m-0 ms-1">
+        <i class="bi bi-pencil" aria-hidden="true"></i></a>
+    {% endwith %}
+  {% endwith %}
+{% endif %}
+{% endcomment %}
+<a href=""
+  class="btn btn-link btn-lg pod-btn-social p-1 m-0 ms-1"
+  data-bs-toggle="dropdown"
+  aria-expanded="false"
+  title="{% trans 'More options' %}"
+>
+  <i class="bi bi-list" aria-hidden="true" data-bs-toggle="tooltip" data-bs-placement="top" title="{% trans 'More options' %}"></i>
+</a>
+{% include 'videos/link_video_dropdown_menu.html' %}
+{% if "edit" in request.resolver_match.url_name %}
+  {% with video.get_other_version as versions %}
+    {% if versions|length > 0 %}
+      <form action="{% url 'video:video_version' id=video.id %}" method="post" id="video_version_form">
+        {% csrf_token %}
+        <fieldset class="form-group border mt-2 p-2">
+          <legend class="col-form-label text-left p-1 col-md-auto">{% trans "Video default version"%}</legend>
+          <div class="text-left">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="version" id="id_versionO" value="O" {% if video.get_version == "O" %}checked{% endif %}>
+              <label class="form-check-label" for="id_versionO">
+                {% trans "Original version" %}
+              </label>
+            </div>
+            {% for version in versions %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="version" id="id_version{{version.app|capfirst|first}}" value="{{version.app|capfirst|first}}" {% if video.get_version == version.app|capfirst|first %}checked{% endif %}>
+                <label class="form-check-label" for="id_version{{version.app|capfirst|first}}">
+                  {{version.link}}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </fieldset>
+      </form>
+    {% endif %}
+  {% endwith %}
+{% endif %}
+
+{%endspaceless%}

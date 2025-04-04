@@ -1,0 +1,336 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  <li class="breadcrumb-item"><a href="{% url 'meeting:my_meetings' %}">{% trans 'My meetings' %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    {% if form.instance.meeting_id and form.instance.meeting_id != '' %}
+      {% trans "Edit the meeting" %} "{{form.instance.name}}"
+    {% else %}
+      {% trans "Add a new meeting" %}
+    {% endif %}</li>
+{% endblock breadcrumbs %}
+
+{% block page_content %}
+  {% if access_not_allowed == True %}
+    <p class="text-info-emphasis">
+      {% url "contact_us" as contact_us %}
+      <i class="bi bi-info-circle" aria-hidden="true"></i>&nbsp;{% blocktrans with url=contact_us %}Access to adding meeting has been restricted. If you want to add meetings on the platform, please <a href="{{url}}">contact us</a>.{% endblocktrans %}
+    </p>
+  {% else %}
+    {% if form.instance.meeting_id and form.instance.meeting_id != '' %}
+      <form id="meeting_form" method="post" action="{% url 'meeting:edit' form.instance.meeting_id %}" accept-charset="utf-8" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% else %}
+      <form id="meeting_form" method="post" action="{% url 'meeting:add' %}" accept-charset="utf-8" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% endif %}
+
+    {% csrf_token %}
+
+    {% if form.errors %}
+      <p class="text-danger">
+        {% trans "One or more errors have been found in the form." %}<br>
+        {% for error in form.non_field_errors %}
+          <span> - {{ error }}</span><br>
+        {% endfor %}
+      </p>
+    {% endif %}
+
+    {% for field_hidden in form.hidden_fields %}
+      {{field_hidden}}
+    {% endfor %}
+
+    {% if form.instance.is_personal %}
+      <div class="pod-first-content">
+        <p>
+          {% if form.instance.owner == user %}
+            {% trans "Your personal meeting room is a room specific to your profile, which is always available." %}
+            {% trans "You can start it at any time, or schedule it for later use." %}
+          {% else %}
+            {% blocktrans with full_name=form.instance.owner.get_full_name %}This is “{{ full_name }}”’s personal meeting room, a room specific to his profile, which is always available.{% endblocktrans %}
+            {% trans "You can start it at any time, or schedule it for later use." %}
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+
+    {% for fieldset in form.fieldsets %}
+    {% with options=fieldset|last name=fieldset|first%}
+      {% if "collapse" in options.classes %}
+        <div class="mb-3">
+          <a class="btn btn-primary" id="advanced_options_btn" data-bs-toggle="collapse" href="#meeting_form_{{fieldset|first}}_{{forloop.counter}}" role="button" aria-expanded="false" aria-controls="">
+            {{ options.legend|safe }}
+          </a>
+        </div>
+      {% endif %}
+      {% if name != "modal" %}
+        <fieldset class="border rounded-3 p-3 mb-3 {{ options.classes }}" id="meeting_form_{{fieldset|first}}_{{forloop.counter}}" >
+          {% if options.legend %}
+            <legend>{{ options.legend|safe }}</legend>
+          {% endif %}
+          <div {% if name == "input-group" %}class="input-group"{% endif %}>
+            {% for field in form.visible_fields %}
+              {% if field.name in options.fields %}
+                {% spaceless %}
+                <div
+                  {% if name != "input-group" %}
+                   class="mb-3 {% if "restrict_access_to_groups" in field.name %}collapse restricted_access{% endif %}"
+                  {% else %}
+                   class="m-1"
+                  {% endif %}>
+                  <div class="{% if field.name == "owners" or field.name == "users" %}form-row {% endif %}form-group {% if field.field.required %}form-group-required {% endif %}">
+                    {{ field.errors }}
+                    {% if "form-check-input" in field.field.widget.attrs.class %}
+                      <div class="form-check">
+                        {{ field }} <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+                      </div>
+                    {% else %}
+                      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                      {{ field }}
+                    {% endif %}
+                    {% if field.help_text %}
+                      <small id="{{field.id_for_label}}Help" class="form-text">{{ field.help_text|safe }}</small>
+                    {% endif %}
+                    {% if field.field.required %}<div class="invalid-feedback">{% trans "Please provide a valid value for this field." %}</div>{% endif %}
+                  </div>
+                </div>
+                {% endspaceless %}
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="d-flex align-items-center">
+            {{ options.additional_data|safe }}
+          </div>
+        </fieldset>
+      {% else %}
+        <div class="modal fade" id="{{options.id}}" tabindex="-1" aria-labelledby="addEditLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 class="modal-title h3" id="addEditLabel">{{ options.legend|safe }}</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                {% if options.template %}
+                  {% include options.template %}
+                {% else %}
+                  {% for field in form.visible_fields %}
+                    {% if field.name in options.fields %}
+                      <div class="{% if field.name == "owners" or field.name == "users" %}form-row {% endif %}form-group {% if field.field.required %}form-group-required {% endif %}">
+                        {{ field.errors }}
+                        {% if "form-check-input" in field.field.widget.attrs.class %}
+                          <div class="form-check">
+                            {{ field }} <label for="{{ field.id_for_label }}" class="form-check-label">{{ field.label }}</label>
+                          </div>
+                        {% else %}
+                          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                          {{ field }}
+                        {% endif %}
+                        {% if field.help_text %}
+                          <small id="{{field.id_for_label}}Help" class="form-text">{{ field.help_text|safe }}</small>
+                        {% endif %}
+                        {% if field.field.required %}<div class="invalid-feedback">{% trans "Please provide a valid value for this field." %}</div>{% endif %}
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{% trans "Save" %}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% endfor %}
+
+    <div class="text-center mb-3">
+      <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+    </div>
+  </form>
+  {% endif %}
+{% endblock page_content %}
+
+{% block collapse_page_aside %}
+  {{ block.super }}
+{% endblock collapse_page_aside %}
+
+{% block page_aside %}
+  {% include 'meeting/filter_aside_meeting.html' %}
+{% endblock page_aside %}
+
+{% block more_script %}
+  <script src="{% static 'admin/js/core.js' %}?ver={{VERSION}}"></script>
+  <!--
+  <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}?ver={{VERSION}}"></script>
+  <script src="{% static 'admin/js/jquery.init.js' %}?ver={{VERSION}}"></script>
+  -->
+  <link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}?ver={{VERSION}}">
+  {{form.media}}
+<script>
+  /** Restrict access **/
+/** restrict access to group */
+var is_restricted_elt;
+var restrict_access_to_groups = function () {
+  //here we call our getParents function
+  const parents = getParents(document.getElementById("id_restrict_access_to_groups"), document.querySelector(".restricted_access"))
+  if (is_restricted_elt.checked) {
+    parents[parents.length-1].style.display = 'block';
+  } else {
+    Array.from(document.getElementById("id_restrict_access_to_groups").options).forEach(function (option) {
+      option.selected = false;
+    });
+    parents[parents.length-1].style.display = 'none';
+  }
+};
+window.addEventListener('load', function(event) {
+  is_restricted_elt = document.getElementById("id_is_restricted");
+  is_restricted_elt.addEventListener('clicked',function (event) {
+    restrict_access_to_groups();
+  });
+  restrict_access_to_groups();
+});
+
+/* Add event listener to use advanced options button with keyboard */
+var advanced_options_btn = document.getElementById('advanced_options_btn');
+if (advanced_options_btn) {
+  advanced_options_btn.addEventListener("keydown", function(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      advanced_options_btn.click();
+    }
+  });
+}
+
+/**
+ * fixed calendar display in a modal
+ * change position from absolute to fixed
+*/
+const myModals = document.getElementsByClassName('modal');
+for (let i = 0; i < myModals.length; i++) {
+  myModals[i].addEventListener('shown.bs.modal', () => {
+    // looking for calendarlink
+    var calendarLinks = myModals[i].querySelectorAll('[id^="calendarlink"]');
+    for(let i = 0; i < calendarLinks.length; i++) {
+      // console.log(calendarLinks[i].getAttribute("id"));
+      var calendarlinkid = calendarLinks[i].getAttribute("id");
+      var targetNode = document.getElementById(calendarlinkid.replace('calendarlink','calendarbox'));
+      var observer = new MutationObserver(function(){
+          if(targetNode.style.display != 'none'){
+              targetNode.style.position = "fixed";
+          }
+      });
+      observer.observe(targetNode, { attributes: true, childList: true });
+    }
+  })
+}
+var day_of_start_date = -1;
+let id_start = document.querySelector("#id_start");
+let start_date_formats = {{start_date_formats|safe}};
+if(id_start) {
+  function setDayOfWeekForStartDate() {
+    let id_start_value = id_start.value;
+    for(let i = 0; i < start_date_formats.length; i++) {
+      let index_day = start_date_formats[i].indexOf('%d');
+      let index_month = start_date_formats[i].indexOf('%m');
+      let index_little_year = start_date_formats[i].indexOf('%y');
+      let index_year = start_date_formats[i].indexOf('%Y');
+      let regex_date_format = "^" + start_date_formats[i].replace('%d', '\\d{2}').replace('%m', '\\d{2}').replace('%y', '\\d{2}').replace('%Y', '\\d{4}') + "$";
+      regex_date_format = regex_date_format.replace("-", "[-]").replace(".", "[.]").replace("/", "[/]");
+      let match = id_start_value.match(new RegExp(regex_date_format, "g"));
+      if(match) {
+        let day = id_start_value.substring(index_day, index_day+2);
+        let monthIndex = parseInt(id_start_value.substring(index_month, index_month+2), 10)-1;
+        let year = 0;
+        if(index_year == -1) {
+          year = id_start_value.substring(index_little_year, index_little_year+2);
+        } else {
+          year = id_start_value.substring(index_year, index_year+4);
+        }
+        let corresponding_day = [6,0,1,2,3,4,5];
+        day_of_start_date = corresponding_day[new Date(year, monthIndex, day).getDay()];
+        return
+      }
+    }
+  }
+  setDayOfWeekForStartDate();
+}
+
+var modal_recurring_fields = document.getElementById('recurring_fields');
+if(modal_recurring_fields) {
+  modal_recurring_fields.addEventListener('shown.bs.modal', () => {
+    setDayOfWeekForStartDate();
+    change_weekdays_display();
+  });
+  modal_recurring_fields.addEventListener('hidden.bs.modal', function (e) {
+    setDayOfWeekForStartDate();
+    var select_days = document.querySelectorAll('input[name="days_of_week"]:checked');
+    let select_days_values = [];
+    for(let i = 0; i < select_days.length; i++) {
+      select_days_values.push(select_days[i].value);
+    }
+    if(recurrence.value == "weekly" && !select_days_values.includes(""+day_of_start_date)) {
+      alert("{% trans "In case of weekly recurring, the day of the start date must be selected." %}");
+      let see_recurring_fields_btn = document.getElementById('see_recurring_fields');
+      if (see_recurring_fields_btn) see_recurring_fields_btn.click();
+    }
+  })
+}
+
+/* Manage personal meeting room */
+var is_personal = ('{{ form.instance.is_personal }}' == "True");
+var time_fieldset = document.getElementById('see_recurring_fields').parentElement.parentElement.parentElement;
+if (is_personal && time_fieldset){
+    // Hide the time fieldset
+    time_fieldset.classList.add("d-none");
+}
+
+/* Manage when voice bridge is modified in a bad format, after a BBB session start */
+var field_voice_bridge = document.getElementById('id_voice_bridge');
+if (field_voice_bridge) {
+  // Good format: between 10000 and 99999
+  if (field_voice_bridge.value > 99999 || field_voice_bridge.value < 10000) {
+    new_voice_bridge = Math.floor(10000 + (Math.random() * 89999));
+    field_voice_bridge.value = new_voice_bridge;
+  }
+}
+
+/* Manage webinars */
+document.addEventListener("DOMContentLoaded", function (event) {
+    var webinar_input_group = document.querySelectorAll('[id^=meeting_form_input-group-webinar]')
+    var is_webinar = document.querySelector('input[name=is_webinar]');
+    let see_recurring_fields = document.getElementById('see_recurring_fields');
+    let field_guest_policy = document.getElementById('id_guest_policy');
+    let field_enable_chat = document.getElementById('id_enable_chat');
+    // Manage webinar mode: no recurring in such a case and guest policy = Always accept
+    if (is_webinar && see_recurring_fields && field_guest_policy) {
+      if (is_webinar.checked) {
+        see_recurring_fields.classList.add("d-none");
+        field_guest_policy.value = "ALWAYS_ACCEPT";
+        field_guest_policy.disabled = true;
+      }
+      is_webinar.addEventListener('change', function (event) {
+        if (is_webinar.checked) {
+          // No recurrence available for webinars
+          see_recurring_fields.classList.add("d-none");
+          field_guest_policy.disabled = true;
+        } else {
+          // Recurrence
+          see_recurring_fields.classList.remove("d-none");
+          field_guest_policy.disabled = false;
+          // No chat options for a normal meeting
+          if (field_enable_chat) {
+            field_enable_chat.checked = false;
+          }
+        }
+      });
+    }
+    // Do not display legend when no webinar fields
+    if (!is_webinar && webinar_input_group && webinar_input_group.length > 0) {
+      webinar_input_group[0].classList.add("d-none");
+    }
+});
+</script>
+{% endblock more_script %}

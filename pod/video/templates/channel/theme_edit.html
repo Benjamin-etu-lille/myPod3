@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+{% load thumbnail %}
+
+{% block page_extra_head %}
+<style>
+  {{channel.style}}
+  {% if channel.color %}
+    body {
+      background-color: {{form.instance.color}};
+    }
+  {% endif %}
+</style>
+{% endblock page_extra_head %}
+
+{% block breadcrumbs %}{{ block.super }}
+  <li class="breadcrumb-item"><a href="{% url 'channels:my_channels' %}">{% trans 'My channels' %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{{channel.title}}</li>
+{% endblock breadcrumbs %}
+
+{% block page_title %}
+  {% trans "Editing the channel’s themes" %} "{{channel.title}}"
+{% endblock %}
+
+
+{% block page_content %}
+<h1 class="page_title">{% trans "Editing the channel’s themes" %} {{channel.title}}
+  <span class="float-end">
+    <a href="{% url 'channel-video:channel' slug_c=channel.slug %}" class="btn btn-link">
+      <i class="bi bi-play-btn" aria-hidden="true"></i>&nbsp;{% trans "View the channel"%}
+    </a>
+    <a href="{% url 'channels:channel_edit' slug=channel.slug %}" class="btn btn-link">
+      <i class="bi bi-pencil-square" aria-hidden="true"></i>&nbsp;{% trans "Edit the channel"%}
+    </a>
+  </span>
+</h1>
+<div id="list_theme">
+  {% include 'channel/list_theme.html' with list_theme=channel.themes.all %}
+</div>
+
+<hr>
+
+<div id="div_form_theme">
+  {% if form_theme %}
+  {% include 'channel/form_theme.html' %}
+  {% else %}
+  <form id="theme_form_new" class="get_form_theme" action="{% url 'channels:theme_edit' slug=channel.slug %}" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="new">
+    <input type="submit" value="{% trans 'Add a new theme' %}" class="btn btn-primary">
+  </form>
+  {% endif %}
+</div>
+<form id="theme_form_new" class="get_form_theme" action="{% url 'channels:theme_edit' slug=channel.slug %}" method="POST" {% if form_theme %}style="display:none;" {% endif %}>
+  {% csrf_token %}
+  <input type="hidden" name="action" value="new">
+  <input type="submit" value="{% trans 'Add a new theme' %}" class="btn btn-primary">
+</form>
+{% endblock page_content %}
+
+{% block page_aside %}
+{% include 'main/mandatory_fields.html'%}
+<div class="card">
+  <h2 class="h4 card-header card-title pod-card__title">{% trans "Form fields"%}</h2>
+  <div class="card-body" id="formfields">
+    {% for title, values in form_theme.THEME_FORM_FIELDS_HELP_TEXT.items %}
+    <div class="card">
+      <button class="btn btn-link rounded-0 pod-btn" id="heading-{{forloop.counter}}" data-bs-toggle="collapse" data-bs-target="#collapse-{{forloop.counter}}" aria-expanded="false" aria-controls="collapse-{{forloop.counter}}">
+        {{title}}
+      </button>
+      <div id="collapse-{{forloop.counter}}" class="card-body collapse card-text small" aria-labelledby="heading-{{forloop.counter}}" data-bs-parent="#formfields">
+        {% for value in values %}
+        <p>{{value}}</p>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock page_aside %}

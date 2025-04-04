@@ -1,0 +1,26 @@
+{% load i18n %}
+<div class="paginator">
+  <div class="paginator-content">
+    <span
+      class="previous_content btn btn-link disabled"
+      id="previous_content"
+      title="{% trans 'Previous page' %}"
+    >
+      <i class="bi bi-arrow-left-circle" aria-hidden="true"></i>
+    </span>
+    <span
+      class="pages_infos"
+      id="pages_infos"
+      title="{% if pages_info %}{{pages_info}}{% else %}0/0{% endif %}"
+    >
+      {% if pages_info %}{{pages_info}}{% else %}0/0{% endif %}
+    </span>
+    <span
+      class="next_content btn btn-link {% if disable_next %} disabled {% endif %}"
+      id="next_content"
+      title="{% trans 'Next page' %}"
+    >
+      <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+    </span>
+  </div>
+</div>

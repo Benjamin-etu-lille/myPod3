@@ -1,0 +1,107 @@
+/**
+ * Esup-Pod completion styles
+ */
+
+/** Table contributor **/
+table#list-contributor tbody td.contributor-name,
+table#list-contributor thead th.contributor-name {
+  width: 20%;
+}
+
+/***** Override track list *****/
+
+.grid-list-track .division {
+  grid-column: 1 / span 4;
+  border-bottom: 1px solid #ccc;
+}
+
+.track-kind.options .btn {
+  margin: 0;
+  padding: 0.2em 0.4em;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.grid-list-track .track-kind.options .btn {
+  font-size: 14px;
+}
+
+.grid-list-track .track-kind.options a.btn {
+  overflow: unset;
+  align-self: self-start;
+}
+
+.grid-list-track .track-kind.options .dropdown #track-menu-button {
+  background-color: var(--pod-primary);
+  color: #fff;
+  border-color: var(--pod-primary);
+  border-radius: 4px;
+}
+
+.grid-list-track .track-kind.options .dropdown .dropdown-item {
+  background-color: #fff;
+}
+
+.grid-list-track .track-kind.options .dropdown .btn {
+  width: 100%;
+}
+
+.grid-list-track .track-kind.options .dropdown {
+  display: none;
+  background-color: #fff;
+}
+
+.grid-list-track .thead-title {
+  margin: 0;
+  padding-right: 20px;
+  color: var(--pod-primary);
+  word-wrap: break-word;
+  font-weight: 600;
+}
+
+.grid-list-track p {
+  margin: 0;
+}
+
+.grid-list-track {
+  display: grid;
+  grid-template-columns: max-content min-content 1fr min-content;
+  grid-gap: 20px;
+  margin-bottom: 1em;
+  margin-top: 1em;
+}
+
+.grid-list-track .track-kind.file {
+  word-break: break-word;
+}
+
+.track-kind.options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 10px;
+}
+
+@media only screen and (width <= 840px) {
+  .grid-list-track .track-kind.options .dropdown {
+    display: inline-block;
+  }
+
+  .grid-list-track .track-kind.options > form,
+  .grid-list-track .track-kind.options > #modif-cap-sub-file {
+    display: none;
+  }
+}
+
+/** Filepicker override **/
+div.file-picker-overlay,
+div.file-picker,
+ul.css-tabs a {
+  box-sizing: content-box;
+}
+
+.caption {
+  padding-top: 0.5rem;
+  color: var(--bs-secondary-color);
+  text-align: left;
+  font-size: 1em;
+}

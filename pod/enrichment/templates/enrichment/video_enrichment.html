@@ -1,0 +1,38 @@
+{% extends 'videos/video.html' %}
+{% load i18n %}
+{% load static %}
+{% load video_filters %}
+
+{% block opengraph %}
+  {% include 'videos/video_opengraph.html' %}
+{% endblock %}
+
+
+{% block page_extra_head %}
+  {% include 'videos/video-header.html' %}
+  <link id="enrichment_style_id" href="{% static 'css/videojs-slides.css' %}?ver={{VERSION}}" rel="stylesheet">
+{% endblock page_extra_head %}
+
+{% block breadcrumbs %}
+  {{ block.super }}
+{% endblock %}
+
+{% block page_title %}
+  {% include 'enrichment/video_enrichment_page_title.html' %}
+{% endblock %}
+
+{% block page_content %}
+  {% include 'enrichment/video_enrichment_page_content.html' %}
+{% endblock page_content %}
+
+{% block page_aside %}
+  {% include "enrichment/video_enrichment_page_aside.html" %}
+{% endblock page_aside %}
+
+{% block more_script %}
+  {# This variable must be assigned to true on the first page load #}
+  <script>
+    var enrichmentIsOn = true;
+  </script>
+  {% include 'enrichment/video_enrichment_more_script.html' %}
+{% endblock more_script %}

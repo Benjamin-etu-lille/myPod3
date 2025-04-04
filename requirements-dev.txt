@@ -1,0 +1,9 @@
+-r ./requirements.txt
+bs4
+flake8
+pydocstyle
+coveralls
+httmock
+beautifulsoup4
+django-debug-toolbar
+django-extensions

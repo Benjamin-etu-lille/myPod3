@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load flat_page_edito_filter %}
+
+{% block opengraph %}{% load video_filters static %}
+  <meta name="description" content="{{ flatpage.content|metaformat|safe|striptags|truncatechars:150 }}">
+  <!-- Open Graph data -->
+  <meta property="og:title" content="{{ flatpage.title }}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:image" content="//{{ request.META.HTTP_HOST }}{% static LOGO_SITE %}">
+  <meta property="og:description" content="{{ flatpage.content|metaformat|safe|striptags|truncatechars:250 }}">
+  <meta property="og:site_name" content="{{ TITLE_SITE }}">
+{% endblock %}
+
+
+{% block breadcrumbs %}
+  {{ block.super }}
+  {% if flatpage.url != "/" %}
+    <li class="breadcrumb-item active" aria-current="page">{{ flatpage.title }}</li>
+  {% endif %}
+{% endblock %}
+
+
+{% block page_title %}{{ flatpage.title }}{% endblock %}
+
+{% block main_page_title %}
+  <h1 class="page_title">{{flatpage.title|capfirst}}</h1>
+{% endblock %}
+
+{% block page_content %}
+{{ flatpage.content }}
+
+  {% if BLOCK %}
+    {% for link in BLOCK %}
+      {% if flatpage.url == link.page.url %}
+        {{link|edito:request|safe}}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+{% endblock page_content %}

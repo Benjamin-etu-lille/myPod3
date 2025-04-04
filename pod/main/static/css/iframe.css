@@ -1,0 +1,12 @@
+/** Esup-Pod iframe mode iframe.css **/
+body,
+.pod-container {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#livename,
+.pod-navbar,
+#event_add {
+  display: none !important;
+}

@@ -1,0 +1,27 @@
+{
+    "defaults": {
+        "timeout": 10000,
+        "viewport": {
+            "width": 1280,
+            "height": 1024
+        },
+        "concurrency": 1,
+        "debug": true,
+        "chromeLaunchConfig": {
+            "args": [
+                "--no-sandbox"
+            ]
+        },
+        "reporters": [
+            "cli",
+            ["json", { "fileName": "/usr/src/app/pa11y-results.json" }]
+        ]
+    },
+    "urls": [
+        "http://pod-back:8000/",
+        "http://pod-back:8000/accounts/login",
+        "http://pod-back:8000/videos",
+        "http://pod-back:8000/video/0001-video-test/",
+        "http://pod-back:8000/live/events/"
+    ]
+}

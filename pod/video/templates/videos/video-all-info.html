@@ -1,0 +1,62 @@
+{% load i18n %}
+<div class="pod-info-video__header">
+  <div>
+    <h1 class="page_title h2">
+      {% if video.licence %} {% include "videos/video_licencebox.html" %}{% endif %}
+      {{video.title|capfirst}}
+    </h1>
+    {% if video.date_evt %}<small class="pod-info-video__date">{{ video.date_evt }}</small>{% endif %}
+  </div>
+  <a class="pod-info-video__signal" href="{% url 'contact_us' %}?video={{video.id}}&subject=inappropriate_content" title="{% trans 'Report the video'%}">
+    <i class="bi bi-exclamation-octagon"></i>
+  </a>
+</div>
+
+{% if video.chapter_set.all %}
+  <div class="alert alert-info" role="alert">{% blocktrans %}This video is chaptered. Click the chapter button <span class="vjs-icon-chapters"></span> on the video player to view them.{% endblocktrans %}</div>
+{% endif %}
+
+<div class="ps-0 pe-0">
+  <div class="navbar d-flex flex-row-reverse p-0">
+    <ul class="nav nav-tabs" role="tablist" id="pod-infos-tabs">
+
+      {% if third_app %}
+        <li class="nav-item dropdown" id="list_third_apps">
+          <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{% trans 'Other versions' %}">
+            <i class="bi bi-layers" aria-hidden="true"></i>
+          </a>
+          <div class="dropdown-menu">
+            {% if video.get_hashkey in request.get_full_path %}
+              <a href="{% url 'video:video_private' slug=video.slug slug_private=video.get_hashkey %}?redirect=false&playlist={{ playlist_in_get.slug }}" class="dropdown-item" target="_blank">{% trans 'Original version' %}</a>
+            {% else %}
+              <a href="{% url 'video:video' slug=video.slug %}?redirect=false&playlist={{ playlist_in_get.slug }}" class="dropdown-item" target="_blank">{% trans 'Original version' %}</a>
+            {% endif %}
+          </div>
+        </li>
+      {% else %}
+        {% with video.get_other_version as versions %}
+        {% if versions|length > 0 %}
+          <li class="nav-item dropdown" id="list_third_apps">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{% trans 'Other versions' %}">
+              <i class="bi bi-layers" aria-hidden="true"></i>
+            </a>
+            <div class="dropdown-menu">
+              {% for version in versions %}
+                {% if video.get_hashkey in request.get_full_path %}
+                  <a href="{{version.url}}{{ video.get_hashkey }}/?redirect=false&playlist={{ playlist_in_get.slug }}" title="{{version.app}}" class="dropdown-item">{{version.link}}</a>
+                {% else %}
+                  <a href="{{version.url}}?redirect=false&playlist={{ playlist_in_get.slug }}" title="{{version.app}}" class="dropdown-item">{{version.link}}</a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </li>
+        {% endif %}
+        {% endwith %}
+      {% endif %}
+    </ul>
+  </div>
+  {% include 'videos/video-info.html' %}
+</div>
+{% if active_video_comment %}
+  {% include 'videos/video-comment.html' with is_auth=request.user.is_authenticated disable=video.disable_comment %}
+{% endif %}
